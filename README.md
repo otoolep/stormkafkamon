@@ -16,3 +16,7 @@ Download and install from: http://code.google.com/p/prettytable/
 - kafka-python
 
 Download and install from: https://github.com/mumrah/kafka-python
+
+Workflow:
+
+The code iterates through all Spout entries in Zookeeper, and retrieves all details. It then contacts each Kafka broker listed in those details, and queries for the earliest available offset, and latest, of each partition. This allows it to display the details shown in the example.
