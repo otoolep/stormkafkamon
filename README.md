@@ -15,7 +15,7 @@ Tested against Kafka 0.72 and Storm 0.82 (along with associated Kafka spout).
 
 Requirements:
 
-- Kazoo Zookeeper client. Install via pip install kazoo.
+- Kazoo Zookeeper client. Install via "pip install kazoo".
 
 - PrettyTable
 
