@@ -15,7 +15,7 @@ PartitionState = namedtuple('PartitionState',
         'latest',       # Current offset within partition on broker
         'spout',        # The Spout consuming this partition
         'current',      # Current offset for Spout
-        'delta'         # Difference between latest and earliest
+        'delta'         # Difference between latest and current
     ])
 
 def process(spouts):
