@@ -65,5 +65,7 @@ def main():
     display(process(zc.spouts(options.spoutroot, options.topology)),
             true_or_false_option(options.friendly))
 
+    return 0
+
 if __name__ == '__main__':
     sys.exit(main())
