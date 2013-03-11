@@ -5,7 +5,7 @@ from kazoo.client import KazooClient
 
 ZkKafkaBroker = namedtuple('ZkKafkaBroker', ['id', 'host', 'port'])
 ZkKafkaSpout = namedtuple('ZkKafkaSpout', ['id', 'partitions'])
-ZkKafkaPartitions = namedtuple('ZkKafkaPartition', ['topic', 'broker', 'num_partitions'])
+ZkKafkaTopic = namedtuple('ZkKafkaTopic', ['topic', 'broker', 'num_partitions'])
 
 class ZkClient:
     def __init__(self, host, port):
@@ -33,21 +33,21 @@ class ZkClient:
         self.client.stop()
         return b
 
-    def partitions(self, broker_root='/brokers'):
+    def topics(self, broker_root='/brokers'):
         '''
-        Returns a list of ZkKafkaPartition tuples, where each tuple represents
-        an partition being stored on a broker.
+        Returns a list of ZkKafkaTopic tuples, where each tuple represents
+        a topic being stored in a broker.
         '''
-        p = []
+        topics = []
         t_root = self._zjoin([broker_root, 'topics'])
 
         self.client.start()
         for t in self.client.get_children(t_root):
             for b in self.client.get_children(self._zjoin([t_root, t])):
                 n = self.client.get(self._zjoin([t_root, t, b]))[0]
-                p.append(ZkKafkaPartitions._make([t, b, n]))
+                topics.append(ZkKafkaTopic._make([t, b, n]))
         self.client.stop()
-        return p
+        return topics
 
     def spouts(self, spout_root, topology):
         '''
