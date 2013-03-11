@@ -19,18 +19,19 @@ class ZkClient:
 
     def brokers(self, broker_root='/brokers'):
         '''
-        Returns a list of ZkKafkaBroker tuples, where each tuple represents
-        a broker.
+        Returns a dictionary of ZkKafkaBroker tuples, where each key is the broker ID
+        and the value is a ZkKafkaBroker.
         '''
-        b = []
+        b = {}
         id_root = self._zjoin([broker_root, 'ids'])
 
         self.client.start()
         for c in self.client.get_children(id_root):
             n = self.client.get(self._zjoin([id_root, c]))[0]
-            b.append(ZkKafkaBroker._make(n.split(':')))
+            broker = ZkKafkaBroker._make(n.split(':'))
+            b[broker.id] = broker
         self.client.stop()
-        return tuple(b)
+        return b
 
     def partitions(self, broker_root='/brokers'):
         '''

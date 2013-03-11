@@ -4,13 +4,13 @@ import argparse
 import sys
 from zkclient import *
 
-def display(partitions):
-    print 'Partition\t\tEarliest Offset\t\tLatest Offset\t\tSpout\t\t\tCurrent Offset\t\tLag'
-    print '==================================================================' * 2
+def display(partitions, brokers):
+    print 'Partition\t\tEarliest Offset\t\tLatest Offset\t\tSpout\t\t\tCurrent Offset\t\tDelta (bytes)'
+    print '===================================================================' * 2
     for p in partitions:
         for i in range(int(p.num_partitions)):
             print '%s:%s:%d' % (p.broker, p.topic, i)
-            print '------------------------------------------------------------------' * 2
+            print '-------------------------------------------------------------------' * 2
 
 ######################################################################
 
@@ -32,7 +32,7 @@ def main():
 
     zc = ZkClient(options.zserver, options.zport)
 
-    display(zc.partitions())
+    display(zc.partitions(), zc.brokers())
 
 if __name__ == '__main__':
     sys.exit(main())
