@@ -1,4 +1,4 @@
-monitor.py --zserver 50.17.158.34 --topology Topology --spoutroot firestorm --friendly
+monitor.py --zserver 127.0.0.1 --topology Topology --spoutroot firestorm --friendly
 No handlers could be found for logger "kafka.codec"
 +--------+-------+-----------+------------+------------+--------------------------+-----------+-------+
 | Broker | Topic | Partition |  Earliest  |   Latest   |          Spout           |  Current  | Delta |
