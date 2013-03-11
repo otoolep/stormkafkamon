@@ -11,6 +11,8 @@ monitor.py --zserver 50.17.158.34 --topology Topology --spoutroot /stormkafka --
 | kafka1 |  raw  |     0     | 2684806902 | 7142647722 | kafkaspout--2013009557-0 | 355649146 | 6.3MB |
 +--------+-------+-----------+------------+------------+--------------------------+-----------+-------+
 
+Tested against Kafka 0.72 and Storm 0.82 (along with associated Kafka spout).
+
 Requirements:
 
 - Kazoo Zookeeper client. Install via pip install kazoo.
