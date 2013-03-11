@@ -13,18 +13,12 @@ monitor.py --zserver 50.17.158.34 --topology Topology --spoutroot /stormkafka --
 
 Requirements:
 
-- Kazoo Zookeeper client
-
-pip install kazoo
+- Kazoo Zookeeper client. Install via pip install kazoo.
 
 - PrettyTable
 
-Download and install from:
+Download and install from: http://code.google.com/p/prettytable/
 
-http://code.google.com/p/prettytable/
+- kafka-python
 
-kafka-python
-
-Download and install from:
-
-https://github.com/mumrah/kafka-python
+Download and install from: https://github.com/mumrah/kafka-python
