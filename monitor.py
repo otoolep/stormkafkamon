@@ -17,7 +17,7 @@ def sizeof_fmt(num):
 def null_fmt(num):
     return num
 
-def display(partitions, friendly=False):
+def display(summary, friendly=False):
     if friendly:
         delta_label = 'Delta'
         fmt = sizeof_fmt
@@ -29,11 +29,15 @@ def display(partitions, friendly=False):
                         'Depth', 'Spout', 'Current', delta_label])
     table.align['broker'] = 'l'
 
-    for p in partitions:
+    for p in summary.partitions:
         table.add_row([p.broker, p.topic, p.partition, p.earliest, p.latest,
-                      fmt(p.latest - p.earliest), p.spout, p.current,
-                      fmt(p.latest - p.current)])
+                      fmt(p.depth), p.spout, p.current, fmt(p.delta)])
     print table.get_string(sortby='Broker')
+    print
+    print 'Number of brokers:       %d' % summary.num_brokers
+    print 'Number of partitions:    %d' % summary.num_partitions
+    print 'Total broker depth:      %s' % fmt(summary.total_depth)
+    print 'Total delta:             %s' % fmt(summary.total_delta)
 
 ######################################################################
 
