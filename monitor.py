@@ -19,14 +19,12 @@ def null_fmt(num):
 
 def display(summary, friendly=False):
     if friendly:
-        delta_label = 'Delta'
         fmt = sizeof_fmt
     else:
-        delta_label = 'Delta (bytes)'
         fmt = null_fmt
 
     table = PrettyTable(['Broker', 'Topic', 'Partition', 'Earliest', 'Latest',
-                        'Depth', 'Spout', 'Current', delta_label])
+                        'Depth', 'Spout', 'Current', 'Delta'])
     table.align['broker'] = 'l'
 
     for p in summary.partitions:
