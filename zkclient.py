@@ -2,10 +2,18 @@ import simplejson as json
 from collections import namedtuple
 
 from kazoo.client import KazooClient
+from kazoo.exceptions import NoNodeError
 
 ZkKafkaBroker = namedtuple('ZkKafkaBroker', ['id', 'host', 'port'])
 ZkKafkaSpout = namedtuple('ZkKafkaSpout', ['id', 'partitions'])
 ZkKafkaTopic = namedtuple('ZkKafkaTopic', ['topic', 'broker', 'num_partitions'])
+
+class ZkError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
 
 class ZkClient:
     def __init__(self, host, port):
@@ -26,9 +34,12 @@ class ZkClient:
         id_root = self._zjoin([broker_root, 'ids'])
 
         self.client.start()
-        for c in self.client.get_children(id_root):
-            n = self.client.get(self._zjoin([id_root, c]))[0]
-            b.append(ZkKafkaBroker._make(n.split(':')))
+        try:
+            for c in self.client.get_children(id_root):
+                n = self.client.get(self._zjoin([id_root, c]))[0]
+                b.append(ZkKafkaBroker._make(n.split(':')))
+        except NoNodeError:
+            raise ZkError('Broker nodes do not exist in Zookeeper')
         self.client.stop()
         return b
 
@@ -41,10 +52,13 @@ class ZkClient:
         t_root = self._zjoin([broker_root, 'topics'])
 
         self.client.start()
-        for t in self.client.get_children(t_root):
-            for b in self.client.get_children(self._zjoin([t_root, t])):
-                n = self.client.get(self._zjoin([t_root, t, b]))[0]
-                topics.append(ZkKafkaTopic._make([t, b, n]))
+        try:
+            for t in self.client.get_children(t_root):
+                for b in self.client.get_children(self._zjoin([t_root, t])):
+                    n = self.client.get(self._zjoin([t_root, t, b]))[0]
+                    topics.append(ZkKafkaTopic._make([t, b, n]))
+        except NoNodeError:
+            raise ZkError('Topic nodes do not exist in Zookeeper')
         self.client.stop()
         return topics
 
@@ -55,12 +69,15 @@ class ZkClient:
         '''
         s = []
         self.client.start()
-        for c in self.client.get_children(spout_root):
-            partitions = []
-            for p in self.client.get_children(self._zjoin([spout_root, c])):
-                j = json.loads(self.client.get(self._zjoin([spout_root, c, p]))[0])
-                if j['topology']['name'] == topology:
-                    partitions.append(j)
-            s.append(ZkKafkaSpout._make([c, partitions]))
+        try:
+            for c in self.client.get_children(spout_root):
+                partitions = []
+                for p in self.client.get_children(self._zjoin([spout_root, c])):
+                    j = json.loads(self.client.get(self._zjoin([spout_root, c, p]))[0])
+                    if j['topology']['name'] == topology:
+                        partitions.append(j)
+                s.append(ZkKafkaSpout._make([c, partitions]))
+        except NoNodeError:
+            raise ZkError('Kafka Spout nodes do not exist in Zookeeper')
         self.client.stop()
         return tuple(s)
