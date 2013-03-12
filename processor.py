@@ -1,6 +1,9 @@
 # Takes lists of objects returned by the zkclient module, and
 # consolidates the information for display.
 
+import logging
+logger = logging.getLogger('kafka.codec').addHandler(logging.NullHandler())
+
 import struct
 import socket
 from collections import namedtuple
