@@ -26,13 +26,14 @@ def display(partitions, friendly=False):
         fmt = null_fmt
 
     table = PrettyTable(['Broker', 'Topic', 'Partition', 'Earliest', 'Latest',
-                       'Spout', 'Current', delta_label])
+                        'Depth', 'Spout', 'Current', delta_label])
     table.align['broker'] = 'l'
 
     for p in partitions:
         table.add_row([p.broker, p.topic, p.partition, p.earliest, p.latest,
-                       p.spout, p.current, fmt(p.latest - p.current)])
-    print table
+                      fmt(p.latest - p.earliest), p.spout, p.current,
+                      fmt(p.latest - p.current)])
+    print table.get_string(sortby='Broker')
 
 ######################################################################
 
