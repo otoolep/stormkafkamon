@@ -9,6 +9,13 @@ import socket
 from collections import namedtuple
 from kafka.client import KafkaClient, OffsetRequest
 
+class ProcessorError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
+
 PartitionState = namedtuple('PartitionState',
     [
         'broker',           # Broker host
@@ -40,7 +47,11 @@ def process(spouts):
     brokers = []
     for s in spouts:
         for p in s.partitions:
-            k = KafkaClient(p['broker']['host'], p['broker']['port'])
+            try:
+                k = KafkaClient(p['broker']['host'], p['broker']['port'])
+            except socket.gaierror, e:
+                raise ProcessorError('Failed to contact Kafka broker %s (%s)' %
+                                     (p['broker']['host'], str(e)))
             earliest_off = OffsetRequest(p['topic'], p['partition'], -2, 1)
             latest_off = OffsetRequest(p['topic'], p['partition'], -1, 1)
 

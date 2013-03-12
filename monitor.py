@@ -5,7 +5,7 @@ import sys
 from prettytable import PrettyTable
 
 from zkclient import ZkClient, ZkError
-from processor import process
+from processor import process, ProcessorError
 
 def sizeof_fmt(num):
     for x in ['bytes','KB','MB','GB']:
@@ -71,7 +71,10 @@ def main():
         display(process(zc.spouts(options.spoutroot, options.topology)),
                 true_or_false_option(options.friendly))
     except ZkError, e:
-        print 'Failed to access Zookeeper (%s)' % str(e)
+        print 'Failed to access Zookeeper: %s' % str(e)
+        return 1
+    except ProcessorError, e:
+        print 'Failed to process: %s' % str(e)
         return 1
 
     return 0
