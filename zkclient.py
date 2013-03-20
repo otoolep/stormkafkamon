@@ -37,7 +37,7 @@ class ZkClient:
         try:
             for c in self.client.get_children(id_root):
                 n = self.client.get(self._zjoin([id_root, c]))[0]
-                b.append(ZkKafkaBroker._make(n.split(':')))
+                b.append(ZkKafkaBroker(c, n.split(':')[1], n.split(':')[2]))
         except NoNodeError:
             raise ZkError('Broker nodes do not exist in Zookeeper')
         self.client.stop()
