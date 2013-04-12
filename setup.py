@@ -6,6 +6,7 @@ install_requires = [
     'PrettyTable==0.7.2',
     'kazoo==1.00',
     'simplejson',
+    'argparse',
     'kafka-python'
 ]
 
@@ -22,7 +23,7 @@ setuptools.setup(
     zip_safe = True,
     verbose = False,
     install_requires = install_requires,
-    dependency_links = ['https://github.com/mumrah/kafka-python/tarball/master#egg=kafka-python-0.8.1-1'],
+    dependency_links = ['https://github.com/mumrah/kafka-python/tarball/0.7#egg=kafka-python-0.7.2-0'],
     entry_points={
         'console_scripts': [
             'skmon = stormkafkamon.monitor:main'
