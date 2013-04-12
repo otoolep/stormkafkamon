@@ -7,15 +7,11 @@ Tested against Kafka 0.72 and Storm 0.82 (along with associated Kafka spout from
 
 Requirements:
 
-- Kazoo Zookeeper client. Install via "pip install kazoo".
+After cloning, run `pip install stormkafkamon`, or just
 
-- PrettyTable
-
-Download and install from: http://code.google.com/p/prettytable/
-
-- kafka-python
-
-Download and install from: https://github.com/mumrah/kafka-python
+```
+pip install https://github.com/otoolep/stormkafkamon/zipball/master
+```
 
 Workflow:
 
