@@ -2,7 +2,12 @@
 # consolidates the information for display.
 
 import logging
-logger = logging.getLogger('kafka.codec').addHandler(logging.NullHandler())
+
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+
+logger = logging.getLogger('kafka.codec').addHandler(NullHandler())
 
 import struct
 import socket
