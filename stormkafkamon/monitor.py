@@ -49,7 +49,7 @@ def display(snap, rates, friendly=False, eventsize=360):
 ######################################################################
 # Calculate rates from two snaps.
 
-def rates(partitions, old_snap, new_snap):
+def kafka_rates(partitions, old_snap, new_snap):
     assert(old_snap[0] < new_snap[0])
     delta_t = new_snap[0] - old_snap[0]
 
@@ -94,12 +94,12 @@ def read_args():
 def main():
     options = read_args()
 
-    snaps = deque(maxlen=options.numsnaps)
+    kafka_snaps = deque(maxlen=options.numsnaps)
     zc = ZkClient(options.zserver, options.zport)
 
     while True:
         try:
-            snap = process(zc.spouts(options.spoutroot, options.topology))
+            kafka_snap = process(zc.spouts(options.spoutroot, options.topology))
         except ZkError, e:
             print 'Failed to access Zookeeper: %s' % str(e)
 	    sleep(options.zretry)
@@ -109,11 +109,11 @@ def main():
 	    sleep(options.zretry)
 	    continue
 
-        snaps.append((int(time()), snap))
-        if len(snaps) > 1:
+        kafka_snaps.append((int(time()), kafka_snap))
+        if len(kafka_snaps) > 1:
             os.system('clear')
-            display(snaps[-1], rates(sorted(snap), snaps[0], snaps[-1]), options.friendly,
-                    options.eventsize)
+            display(kafka_snaps[-1], kafka_rates(sorted(kafka_snap), kafka_snaps[0], kafka_snaps[-1]),
+                    options.friendly, options.eventsize)
 
         sleep(options.snapinterval)
 
