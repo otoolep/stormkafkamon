@@ -23,9 +23,7 @@ class ProcessorError(Exception):
 
 PartitionState = namedtuple('PartitionState',
     [
-        'broker',           # Broker host
-        'topic',            # Topic on broker
-        'partition',        # The partition
+        'topic',            # Topic
         'earliest',         # Earliest offset within partition on broker
         'latest',           # Current offset within partition on broker
         'depth',            # Depth of partition on broker.
@@ -44,13 +42,13 @@ PartitionsSummary = namedtuple('PartitionsSummary',
 
 def process(spouts):
     '''
-    Returns a named tuple of type PartitionsSummary.
+    List of dictionary objects. Structure of dic objects:
+
+    key:    'broker:partition'
+    value:  Corresponding PartitionState object.
     '''
-    results = []
-    total_depth = 0
-    total_delta = 0
-    brokers = []
     for s in spouts:
+        states = {}
         for p in s.partitions:
             try:
                 k = KafkaClient(p['broker']['host'], p['broker']['port'])
@@ -64,22 +62,13 @@ def process(spouts):
             latest = k.get_offsets(latest_off)[0]
             current = p['offset']
 
-            brokers.append(p['broker']['host'])
-            total_depth = total_depth + (latest - earliest)
-            total_delta = total_delta + (latest - current)
-
-            results.append(PartitionState._make([
-                p['broker']['host'],
+            states[p['broker']['host'] + ':' + str(p['partition'])] = PartitionState._make([
                 p['topic'],
-                p['partition'],
                 earliest,
                 latest,
                 latest - earliest,
                 s.id,
                 current,
-                latest - current]))
-    return PartitionsSummary(total_depth=total_depth,
-                             total_delta=total_delta,
-                             num_partitions=len(results),
-                             num_brokers=len(set(brokers)),
-                             partitions=tuple(results))
+                latest - current])
+
+    return states

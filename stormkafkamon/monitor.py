@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+import os
 import argparse
 import sys
+from time import sleep, time
+from collections import deque
 from prettytable import PrettyTable
 
 from zkclient import ZkClient, ZkError
@@ -17,25 +20,32 @@ def sizeof_fmt(num):
 def null_fmt(num):
     return num
 
-def display(summary, friendly=False):
+def display(snap, rates, friendly=False):
     if friendly:
         fmt = sizeof_fmt
     else:
         fmt = null_fmt
 
-    table = PrettyTable(['Broker', 'Topic', 'Partition', 'Earliest', 'Latest',
-                        'Depth', 'Spout', 'Current', 'Delta'])
-    table.align['broker'] = 'l'
+    table = PrettyTable(['Partition', 'Earliest', 'Latest', 'Depth', 'Incoming', 'Current', 'Delta', 'Outgoing'])
 
-    for p in summary.partitions:
-        table.add_row([p.broker, p.topic, p.partition, p.earliest, p.latest,
-                      fmt(p.depth), p.spout, p.current, fmt(p.delta)])
-    print table.get_string(sortby='Broker')
+    for k, v in snap[1].items():
+        table.add_row([k, v.earliest, v.latest, fmt(v.depth), fmt(rates[k][0]), v.current, fmt(v.delta), fmt(rates[k][1])])
+    print table.get_string(sortby='Partition')
     print
-    print 'Number of brokers:       %d' % summary.num_brokers
-    print 'Number of partitions:    %d' % summary.num_partitions
-    print 'Total broker depth:      %s' % fmt(summary.total_depth)
-    print 'Total delta:             %s' % fmt(summary.total_delta)
+
+######################################################################
+# Calculate rates from two snaps.
+
+def rates(partitions, old_snap, new_snap):
+    assert(old_snap[0] < new_snap[0])
+    delta_t = new_snap[0] - old_snap[0]
+
+    results = {}
+    for p in partitions:
+        # Set a tuple for this partition of incoming rate and outgoing rate.
+        results[p] = ((new_snap[1][p].latest - old_snap[1][p].latest) / delta_t,
+                      (new_snap[1][p].current - old_snap[1][p].current) / delta_t)
+    return results
 
 ######################################################################
 
@@ -54,26 +64,38 @@ def read_args():
         help='Zookeeper port (default: 2181)')
     parser.add_argument('--topology', type=str, required=True,
         help='Storm Topology')
-    parser.add_argument('--spoutroot', type=str, required=True,
+    parser.add_argument('--spoutroot', type=str, required=True, metavar='ROOT',
         help='Root path for Kafka Spout data in Zookeeper')
     parser.add_argument('--friendly', action='store_const', const=True,
                     help='Show friendlier data')
+    parser.add_argument('--numsnaps', type=int, default=10, metavar='N',
+                    help='Number of snaps to keep (default: 10)')
+    parser.add_argument('--snapinterval', type=int, default=1, metavar='S',
+                    help='Seconds between snaps (default: 1)')
     return parser.parse_args()
 
 def main():
     options = read_args()
 
+    snaps = deque(maxlen=options.numsnaps)
     zc = ZkClient(options.zserver, options.zport)
 
-    try:
-        display(process(zc.spouts(options.spoutroot, options.topology)),
-                true_or_false_option(options.friendly))
-    except ZkError, e:
-        print 'Failed to access Zookeeper: %s' % str(e)
-        return 1
-    except ProcessorError, e:
-        print 'Failed to process: %s' % str(e)
-        return 1
+    while True:
+        try:
+            snap = process(zc.spouts(options.spoutroot, options.topology))
+        except ZkError, e:
+            print 'Failed to access Zookeeper: %s' % str(e)
+            return 1
+        except ProcessorError, e:
+            print 'Failed to process: %s' % str(e)
+            return 1
+
+        snaps.append((int(time()), snap))
+        if len(snaps) > 1:
+            #os.system('clear')
+            display(snaps[-1], rates(sorted(snap), snaps[0], snaps[-1]), options.friendly)
+
+        sleep(options.snapinterval)
 
     return 0
 
