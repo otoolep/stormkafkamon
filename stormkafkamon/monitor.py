@@ -20,18 +20,31 @@ def sizeof_fmt(num):
 def null_fmt(num):
     return num
 
-def display(snap, rates, friendly=False):
+def display(snap, rates, friendly=False, eventsize=360):
     if friendly:
         fmt = sizeof_fmt
     else:
         fmt = null_fmt
 
-    table = PrettyTable(['Partition', 'Earliest', 'Latest', 'Depth', 'Incoming', 'Current', 'Delta', 'Outgoing'])
+    table = PrettyTable(['Partition', 'Earliest', 'Latest', 'Depth', 'Incoming (/sec)', 'Current', 'Delta', 'Outgoing (/sec)'])
 
+    total_delta = 0
+    total_depth = 0
+    total_incoming = 0
+    total_outgoing = 0
     for k, v in snap[1].items():
         table.add_row([k, v.earliest, v.latest, fmt(v.depth), fmt(rates[k][0]), v.current, fmt(v.delta), fmt(rates[k][1])])
+        total_delta = total_delta + v.delta
+        total_depth = total_depth + v.depth
+	total_incoming = total_incoming + rates[k][0]
+	total_outgoing = total_outgoing + rates[k][1]
+
     print table.get_string(sortby='Partition')
     print
+    print 'Total depth: %s' % fmt(total_depth)
+    print 'Total delta: %s' % fmt(total_delta)
+    print 'Total incoming: %s/sec %d/sec' % (fmt(total_incoming), total_incoming/eventsize)
+    print 'Total outgoing: %s/sec %d/sec' % (fmt(total_outgoing), total_outgoing/eventsize)
 
 ######################################################################
 # Calculate rates from two snaps.
@@ -62,6 +75,8 @@ def read_args():
         help='Zookeeper host (default: localhost)')
     parser.add_argument('--zport', type=int, default=2181,
         help='Zookeeper port (default: 2181)')
+    parser.add_argument('--zretry', type=int, default=5,
+        help='Zookeeper error retry period (default: 5)')
     parser.add_argument('--topology', type=str, required=True,
         help='Storm Topology')
     parser.add_argument('--spoutroot', type=str, required=True, metavar='ROOT',
@@ -72,6 +87,8 @@ def read_args():
                     help='Number of snaps to keep (default: 10)')
     parser.add_argument('--snapinterval', type=int, default=1, metavar='S',
                     help='Seconds between snaps (default: 1)')
+    parser.add_argument('--eventsize', type=int, default=360, metavar='M',
+                    help='Nominal event size (default: 360)')
     return parser.parse_args()
 
 def main():
@@ -85,15 +102,18 @@ def main():
             snap = process(zc.spouts(options.spoutroot, options.topology))
         except ZkError, e:
             print 'Failed to access Zookeeper: %s' % str(e)
-            return 1
+	    sleep(options.zretry)
+	    continue
         except ProcessorError, e:
             print 'Failed to process: %s' % str(e)
-            return 1
+	    sleep(options.zretry)
+	    continue
 
         snaps.append((int(time()), snap))
         if len(snaps) > 1:
-            #os.system('clear')
-            display(snaps[-1], rates(sorted(snap), snaps[0], snaps[-1]), options.friendly)
+            os.system('clear')
+            display(snaps[-1], rates(sorted(snap), snaps[0], snaps[-1]), options.friendly,
+                    options.eventsize)
 
         sleep(options.snapinterval)
 
