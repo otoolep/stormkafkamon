@@ -86,16 +86,17 @@ def main():
 
     try:
         zk_data = process(zc.spouts(options.spoutroot, options.topology))
-        if options.postjson:
-            post_json(options.postjson, zk_data)
-        else:
-            display(zk_data, true_or_false_option(options.friendly))
     except ZkError, e:
         print 'Failed to access Zookeeper: %s' % str(e)
         return 1
     except ProcessorError, e:
         print 'Failed to process: %s' % str(e)
         return 1
+    else:
+        if options.postjson:
+            post_json(options.postjson, zk_data)
+        else:
+            display(zk_data, true_or_false_option(options.friendly))
 
     return 0
 
