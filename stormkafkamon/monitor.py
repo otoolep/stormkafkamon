@@ -3,6 +3,8 @@
 import argparse
 import sys
 from prettytable import PrettyTable
+import requests
+import simplejson as json
 
 from zkclient import ZkClient, ZkError
 from processor import process, ProcessorError
@@ -37,6 +39,21 @@ def display(summary, friendly=False):
     print 'Total broker depth:      %s' % fmt(summary.total_depth)
     print 'Total delta:             %s' % fmt(summary.total_delta)
 
+def post_json(endpoint, zk_data):
+    fields = ("broker", "topic", "partition", "earliest", "latest", "depth",
+              "spout", "current", "delta")
+    json_data = {"%s-%s" % (p.broker, p.partition):
+                 {name: getattr(p, name) for name in fields}
+                 for p in zk_data.partitions}
+    total_fields = ('depth', 'delta')
+    total = {fieldname:
+             sum(getattr(p, fieldname) for p in zk_data.partitions)
+             for fieldname in total_fields}
+    total['partitions'] = len({p.partition for p in zk_data.partitions})
+    total['brokers'] = len({p.broker for p in zk_data.partitions})
+    json_data['total'] = total
+    requests.post(endpoint, data=json.dumps(json_data))
+
 ######################################################################
 
 def true_or_false_option(option):
@@ -58,6 +75,8 @@ def read_args():
         help='Root path for Kafka Spout data in Zookeeper')
     parser.add_argument('--friendly', action='store_const', const=True,
                     help='Show friendlier data')
+    parser.add_argument('--postjson', type=str,
+                    help='endpoint to post json data to')
     return parser.parse_args()
 
 def main():
@@ -66,8 +85,11 @@ def main():
     zc = ZkClient(options.zserver, options.zport)
 
     try:
-        display(process(zc.spouts(options.spoutroot, options.topology)),
-                true_or_false_option(options.friendly))
+        zk_data = process(zc.spouts(options.spoutroot, options.topology))
+        if options.postjson:
+            post_json(options.postjson, zk_data)
+        else:
+            display(zk_data, true_or_false_option(options.friendly))
     except ZkError, e:
         print 'Failed to access Zookeeper: %s' % str(e)
         return 1

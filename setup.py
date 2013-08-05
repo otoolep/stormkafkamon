@@ -7,6 +7,7 @@ install_requires = [
     'kazoo==1.00',
     'simplejson',
     'argparse',
+    'requests',
     'kafka-python'
 ]
 
