@@ -1,3 +1,5 @@
+*I am not longer maintaining this tool. It should continue to work fine with Kafka 0.72 however.*
+
 stormkafkamon
 =============
 
