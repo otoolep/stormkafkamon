@@ -1,7 +1,7 @@
 stormkafkamon
 =============
 
-stormkafkamon dumps the state of [Apache Storm](http://storm.apache.org/) [Kafka](http://kafka.apache.org/) consumer spouts, showing how far behind each is behind, relative to the Kafka partition it is consuming. Once running it presents output like so:
+_stormkafkamon_ dumps the state of [Apache Storm](http://storm.apache.org/) [Kafka](http://kafka.apache.org/) consumer spouts, showing how far behind each is behind, relative to the Kafka partition it is consuming. Once running it presents output like so:
 ```
 monitor.py --zserver zookeeper0 --topology  NoBoltsTopology --spoutroot testroot --friendly
 +--------+-------+-----------+----------+-------------+--------+------------------------+-------------+----------+
