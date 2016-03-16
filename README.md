@@ -1,7 +1,7 @@
 stormkafkamon
 =============
 
-Dumps state of [Apache Storm](http://storm.apache.org/) [Kafka](http://kafka.apache.org/) consumer spouts, showing how far behind each is behind, relative to the Kafka partition it is consuming. Once running it presents output like so:
+stormkafkamon dumps the state of [Apache Storm](http://storm.apache.org/) [Kafka](http://kafka.apache.org/) consumer spouts, showing how far behind each is behind, relative to the Kafka partition it is consuming. Once running it presents output like so:
 ```
 monitor.py --zserver zookeeper0 --topology  NoBoltsTopology --spoutroot testroot --friendly
 +--------+-------+-----------+----------+-------------+--------+------------------------+-------------+----------+
@@ -24,7 +24,7 @@ Total delta:             1.8MB
 ```
 This tool could be used to perform simple monitoring of spout throughput.
 
-Tested against Kafka 0.72 and Storm 0.82 (along with associated Kafka spout from storm-contrib), running on Ubunutu 12.04.
+Tested against Kafka [0.72](http://kafka.apache.org/downloads.html) and Storm 0.82 (along with associated Kafka spout from storm-contrib), running on Ubuntu 12.04.
 
 ## Requirements
 
