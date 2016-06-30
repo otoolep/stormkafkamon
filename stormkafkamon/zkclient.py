@@ -6,16 +6,22 @@ from kazoo.exceptions import NoNodeError
 
 ZkKafkaBroker = namedtuple('ZkKafkaBroker', ['id', 'host', 'port'])
 ZkKafkaSpout = namedtuple('ZkKafkaSpout', ['id', 'partitions'])
-ZkKafkaTopic = namedtuple('ZkKafkaTopic', ['topic', 'broker', 'num_partitions'])
+ZkKafkaTopic = namedtuple(
+    'ZkKafkaTopic', [
+        'topic', 'broker', 'num_partitions'])
+
 
 class ZkError(Exception):
+
     def __init__(self, msg):
         self.msg = msg
 
     def __str__(self):
         return self.msg
 
+
 class ZkClient:
+
     def __init__(self, host, port):
         self.host = host
         self.port = port
@@ -72,8 +78,10 @@ class ZkClient:
         try:
             for c in self.client.get_children(spout_root):
                 partitions = []
-                for p in self.client.get_children(self._zjoin([spout_root, c])):
-                    j = json.loads(self.client.get(self._zjoin([spout_root, c, p]))[0])
+                for p in self.client.get_children(
+                        self._zjoin([spout_root, c])):
+                    j = json.loads(self.client.get(
+                        self._zjoin([spout_root, c, p]))[0])
                     if j['topology']['name'] == topology:
                         partitions.append(j)
                 s.append(ZkKafkaSpout._make([c, partitions]))

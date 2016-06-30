@@ -3,7 +3,9 @@
 
 import logging
 
+
 class NullHandler(logging.Handler):
+
     def emit(self, record):
         pass
 
@@ -15,7 +17,9 @@ from collections import namedtuple
 from kafka.client import KafkaClient
 from kafka.common import OffsetRequestPayload
 
+
 class ProcessorError(Exception):
+
     def __init__(self, msg):
         self.msg = msg
 
@@ -23,25 +27,29 @@ class ProcessorError(Exception):
         return self.msg
 
 PartitionState = namedtuple('PartitionState',
-    [
-        'broker',           # Broker host
-        'topic',            # Topic on broker
-        'partition',        # The partition
-        'earliest',         # Earliest offset within partition on broker
-        'latest',           # Current offset within partition on broker
-        'depth',            # Depth of partition on broker.
-        'spout',            # The Spout consuming this partition
-        'current',          # Current offset for Spout
-        'delta'             # Difference between latest and current
-    ])
+                            [
+                                'broker',           # Broker host
+                                'topic',            # Topic on broker
+                                'partition',        # The partition
+                                'earliest',         # Earliest offset within partition on broker
+                                'latest',           # Current offset within partition on broker
+                                'depth',
+                                # Depth of partition on broker.
+                                'spout',            # The Spout consuming this partition
+                                'current',          # Current offset for Spout
+                                'delta'             # Difference between latest and current
+                            ])
 PartitionsSummary = namedtuple('PartitionsSummary',
-    [
-        'total_depth',      # Total queue depth.
-        'total_delta',      # Total delta across all spout tasks.
-        'num_partitions',   # Number of partitions.
-        'num_brokers',      # Number of Kafka Brokers.
-        'partitions'        # Tuple of PartitionStates
-    ])
+                               [
+                                   'total_depth',      # Total queue depth.
+                                   'total_delta',
+                                   # Total delta across all spout tasks.
+                                   'num_partitions',   # Number of partitions.
+                                   # Number of Kafka Brokers.
+                                   'num_brokers',
+                                   'partitions'        # Tuple of PartitionStates
+                               ])
+
 
 def process(spouts):
     '''
@@ -55,7 +63,7 @@ def process(spouts):
         for p in s.partitions:
             try:
                 k = KafkaClient(p['broker']['host'], p['broker']['port'])
-            except socket.gaierror, e:
+            except socket.gaierror as e:
                 raise ProcessorError('Failed to contact Kafka broker %s (%s)' %
                                      (p['broker']['host'], str(e)))
             earliest_off = OffsetRequest(p['topic'], p['partition'], -2, 1)
