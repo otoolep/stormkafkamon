@@ -24,7 +24,7 @@ Total delta:             1.8MB
 ```
 This tool could be used to perform simple monitoring of spout throughput.
 
-Tested against Kafka [0.72](http://kafka.apache.org/downloads.html) and Storm 0.82 (along with associated Kafka spout from storm-contrib), running on Ubuntu 12.04.
+Tested against Kafka [0.72](http://kafka.apache.org/downloads.html) and Storm 0.82 (along with associated Kafka spout from [storm-contrib](https://github.com/nathanmarz/storm-contrib)), running on Ubuntu 12.04.
 
 ## Requirements
 
