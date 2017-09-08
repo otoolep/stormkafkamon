@@ -14,7 +14,7 @@ logger = logging.getLogger('kafka.codec').addHandler(NullHandler())
 import struct
 import socket
 from collections import namedtuple
-from kafka.client import KafkaClient
+from kafka.client import SimpleClient
 from kafka.common import OffsetRequestPayload
 
 
@@ -62,15 +62,15 @@ def process(spouts):
     for s in spouts:
         for p in s.partitions:
             try:
-                k = KafkaClient(p['broker']['host'], p['broker']['port'])
+                k = SimpleClient([p['broker']['host'] + ":" + str(p['broker']['port'])])
             except socket.gaierror as e:
-                raise ProcessorError('Failed to contact Kafka broker %s (%s)' %
-                                     (p['broker']['host'], str(e)))
-            earliest_off = OffsetRequest(p['topic'], p['partition'], -2, 1)
-            latest_off = OffsetRequest(p['topic'], p['partition'], -1, 1)
+                raise ProcessorError('Failed to contact Kafka broker %s (%s)' % (p['broker']['host'], str(e)))
 
-            earliest = k.get_offsets(earliest_off)[0]
-            latest = k.get_offsets(latest_off)[0]
+            earliest_off = OffsetRequestPayload(p['topic'], p['partition'], -2, 1)
+            latest_off = OffsetRequestPayload(p['topic'], p['partition'], -1, 1)
+
+            earliest = k.send_offset_request([earliest_off])[0].offsets[0]
+            latest = k.send_offset_request([latest_off])[0].offsets[0]
             current = p['offset']
 
             brokers.append(p['broker']['host'])
