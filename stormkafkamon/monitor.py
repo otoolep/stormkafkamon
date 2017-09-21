@@ -29,6 +29,27 @@ def display(summary, friendly=False):
         fmt = null_fmt
 
     table = PrettyTable(['Broker', 'Topic', 'Partition', 'Earliest', 'Latest',
+                         'Depth', 'Spout', 'Current', 'Delta'])
+    table.align['broker'] = 'l'
+
+    for p in summary.partitions:
+        table.add_row([p.broker, p.topic, p.partition, p.earliest, p.latest,
+                       fmt(p.depth), p.spout, p.current, fmt(p.delta)])
+    print table.get_string(sortby='Broker')
+    print
+    print 'Number of brokers:       %d' % summary.num_brokers
+    print 'Number of partitions:    %d' % summary.num_partitions
+    print 'Total broker depth:      %s' % fmt(summary.total_depth)
+    print 'Total delta:             %s' % fmt(summary.total_delta)
+
+
+def display_lag(summary, friendly=False):
+    if friendly:
+        fmt = sizeof_fmt
+    else:
+        fmt = null_fmt
+
+    table = PrettyTable(['Broker', 'Topic', 'Partition', 'Earliest', 'Latest',
                          'Current', 'Lag', 'Spout', 'Delta', 'Depth'])
     table.align['broker'] = 'l'
 
@@ -83,6 +104,8 @@ def read_args():
                         help='Root path for Kafka Spout data in Zookeeper')
     parser.add_argument('--friendly', action='store_const', const=True,
                         help='Show friendlier data')
+    parser.add_argument('--showlag', action='store_const', const=True,
+                        help='show lag info')
     parser.add_argument('--postjson', type=str,
                         help='endpoint to post json data to')
     return parser.parse_args()
@@ -104,6 +127,8 @@ def main():
     else:
         if options.postjson:
             post_json(options.postjson, zk_data)
+        if options.showlag:
+            display_lag(zk_data, true_or_false_option(options.friendly))
         else:
             display(zk_data, true_or_false_option(options.friendly))
 
