@@ -22,48 +22,36 @@ def null_fmt(num):
     return num
 
 
-def display(summary, friendly=False):
+def display(summary, friendly=False, show_lag=False):
     if friendly:
         fmt = sizeof_fmt
     else:
         fmt = null_fmt
 
-    table = PrettyTable(['Broker', 'Topic', 'Partition', 'Earliest', 'Latest',
-                         'Depth', 'Spout', 'Current', 'Delta'])
-    table.align['broker'] = 'l'
-
-    for p in summary.partitions:
-        table.add_row([p.broker, p.topic, p.partition, p.earliest, p.latest,
-                       fmt(p.depth), p.spout, p.current, fmt(p.delta)])
-    print table.get_string(sortby='Broker')
-    print
-    print 'Number of brokers:       %d' % summary.num_brokers
-    print 'Number of partitions:    %d' % summary.num_partitions
-    print 'Total broker depth:      %s' % fmt(summary.total_depth)
-    print 'Total delta:             %s' % fmt(summary.total_delta)
-
-
-def display_lag(summary, friendly=False):
-    if friendly:
-        fmt = sizeof_fmt
+    if show_lag:
+        table = PrettyTable(['Broker', 'Topic', 'Partition', 'Earliest', 'Latest',
+                             'Current', 'Lag', 'Spout', 'Delta', 'Depth'])
     else:
-        fmt = null_fmt
-
-    table = PrettyTable(['Broker', 'Topic', 'Partition', 'Earliest', 'Latest',
-                         'Current', 'Lag', 'Spout', 'Delta', 'Depth'])
+        table = PrettyTable(['Broker', 'Topic', 'Partition', 'Earliest', 'Latest',
+                             'Depth', 'Spout', 'Current', 'Delta'])
     table.align['broker'] = 'l'
 
     for p in summary.partitions:
-        table.add_row([p.broker, p.topic, p.partition, p.earliest, p.latest,
-                      p.current, p.latest - p.current, p.spout, fmt(p.delta), fmt(p.depth)])
+        if show_lag:
+            table.add_row([p.broker, p.topic, p.partition, p.earliest, p.latest,
+                           p.current, p.latest - p.current, p.spout, fmt(p.delta), fmt(p.depth)])
+        else:
+            table.add_row([p.broker, p.topic, p.partition, p.earliest, p.latest,
+                           fmt(p.depth), p.spout, p.current, fmt(p.delta)])
 
     print table.get_string(sortby='Broker')
     print
     print 'Number of brokers:       %d' % summary.num_brokers
     print 'Number of partitions:    %d' % summary.num_partitions
-    print 'Total lag:               %s' % summary.total_delta
-    print 'Total delta:             %s' % fmt(summary.total_delta)
+    if show_lag:
+        print 'Total lag:               %s' % summary.total_delta
     print 'Total broker depth:      %s' % fmt(summary.total_depth)
+    print 'Total delta:             %s' % fmt(summary.total_delta)
 
 
 def post_json(endpoint, zk_data):
@@ -127,10 +115,8 @@ def main():
     else:
         if options.postjson:
             post_json(options.postjson, zk_data)
-        if options.showlag:
-            display_lag(zk_data, true_or_false_option(options.friendly))
-        else:
-            display(zk_data, true_or_false_option(options.friendly))
+        display(zk_data, true_or_false_option(options.friendly),
+                true_or_false_option(options.showlag))
 
     return 0
 
